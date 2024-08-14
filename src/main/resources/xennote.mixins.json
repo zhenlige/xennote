@@ -1,0 +1,12 @@
+{
+	"required": true,
+	"package": "com.github.zhenlige.xennote.mixin",
+	"compatibilityLevel": "JAVA_21",
+	"mixins": [
+		/*"NoteBlockMixin",*/
+		"PlaySoundCommandMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}
