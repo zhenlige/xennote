@@ -2,16 +2,16 @@
 	"schemaVersion": 1,
 	"id": "xennote",
 	"version": "${version}",
-	"name": "Xenharmonic Note Block",
-	"description": "Adding new note blocks that supports xenharmonic tunings",
+	"name": "XenNote",
+	"description": "Adding new note blocks that supports microtonal/xenharmonic tunings",
 	"authors": [
-		"Ikyan"
+		"zhenlige"
 	],
 	"contact": {
-		"homepage": "Nothing!",
-		"sources": "Daydream!"
+		"homepage": "https://github.com/zhenlige/xennote",
+		"sources": "https://github.com/zhenlige/xennote"
 	},
-	"license": "CC0-1.0",
+	"license": "MIT License",
 	"icon": "assets/xennote/icon.png",
 	"environment": "*",
 	"entrypoints": {
@@ -33,7 +33,7 @@
 		}
 	],
 	"depends": {
-		"fabricloader": ">=0.15.11",
+		"fabricloader": "*",
 		"minecraft": ">=1.21",
 		"java": ">=21",
 		"fabric-api": "*"

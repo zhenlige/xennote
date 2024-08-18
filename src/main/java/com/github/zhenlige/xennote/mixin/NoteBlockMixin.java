@@ -16,6 +16,10 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
+/**
+ * This mixin is currently disabled. It will not be used until there is a way to
+ * get access to other variables in <code>@ModifyVariable</code>.
+ */
 @Mixin(NoteBlock.class)
 public abstract class NoteBlockMixin extends Block {
 	public static final Logger LOGGER = LoggerFactory.getLogger("xennote.NoteBlockMixin");

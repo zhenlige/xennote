@@ -1,6 +1,7 @@
 plugins {
 	id 'fabric-loom' version '1.7-SNAPSHOT'
 	id 'maven-publish'
+	// id 'com.modrinth.minotaur' version '2.+'
 }
 
 version = project.mod_version
@@ -91,4 +92,22 @@ publishing {
 		// The repositories here will be used for publishing your artifact, not for
 		// retrieving dependencies.
 	}
+}
+
+modrinth {
+    token = System.getenv("MODRINTH_TOKEN")
+    projectId = "xennote"
+    versionNumber = "0.1.0" // You don't need to set this manually. Will fail if Modrinth has this version already
+    versionType = "alpha" // `release` or `beta` or `alpha`
+    uploadFile = remapJar
+    gameVersions = ["1.21", "1.21.1"] // Must be an array, even with only one version
+    loaders = ["fabric", "quilt"] // Must also be an array - no need to specify this if you're using Loom or ForgeGradle
+    dependencies { // A special DSL for creating dependencies
+        // scope.type
+        // The scope can be `required`, `optional`, `incompatible`, or `embedded`
+        // The type can either be `project` or `version`
+        required.project "fabric-api"
+        required.project "cloth-config"
+        // optional.version "sodium", "mc1.19.3-0.4.8" // Creates a new optional dependency on this specific version of Sodium
+    }
 }

@@ -1,5 +1,7 @@
 package com.github.zhenlige.xennote;
-
+/**
+ * This class is maintained for future development.
+ */
 public class Rational {
 	public int p, q;
 
