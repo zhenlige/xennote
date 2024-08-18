@@ -1,7 +1,7 @@
 plugins {
 	id 'fabric-loom' version '1.7-SNAPSHOT'
 	id 'maven-publish'
-	// id 'com.modrinth.minotaur' version '2.+'
+	id 'com.modrinth.minotaur' version '2.+'
 }
 
 version = project.mod_version
@@ -94,10 +94,12 @@ publishing {
 	}
 }
 
+import com.modrinth.minotaur.TaskModrinthUpload
+
 modrinth {
     token = System.getenv("MODRINTH_TOKEN")
     projectId = "xennote"
-    versionNumber = "0.1.0" // You don't need to set this manually. Will fail if Modrinth has this version already
+    versionNumber = project.version // You don't need to set this manually. Will fail if Modrinth has this version already
     versionType = "alpha" // `release` or `beta` or `alpha`
     uploadFile = remapJar
     gameVersions = ["1.21", "1.21.1"] // Must be an array, even with only one version
