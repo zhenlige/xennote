@@ -1,11 +1,14 @@
 package com.github.zhenlige.xennote;
 
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.block.NoteBlock;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.item.BlockItem;
@@ -14,8 +17,13 @@ import net.minecraft.item.ItemGroups;
 import net.minecraft.item.Items;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.command.CommandManager;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
 
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,13 +55,31 @@ public class XennoteMain implements ModInitializer {
 		PayloadTypeRegistry.playS2C().register(XennotePayload.ID, XennotePayload.CODEC);
 		PayloadTypeRegistry.playC2S().register(XennotePayload.ID, XennotePayload.CODEC);
 		ServerPlayNetworking.registerGlobalReceiver(XennotePayload.ID, (payload, context) -> {
-			BlockEntity be = context.server().getWorld(payload.pos().dimension()).getBlockEntity(payload.pos().pos());
-			if(be instanceof XenNoteBlockEntity) {
-				((XenNoteBlockEntity) be).p = payload.p();
-				((XenNoteBlockEntity) be).q = payload.q();
-				((XenNoteBlockEntity) be).edo = payload.edo();
+			World world = context.server().getWorld(payload.pos().dimension());
+			BlockPos pos = payload.pos().pos();
+			BlockState state = world.getBlockState(pos);
+			BlockEntity be = world.getBlockEntity(pos);
+			if(be instanceof XenNoteBlockEntity xbe) {
+				xbe.p = payload.p();
+				xbe.q = payload.q();
+				xbe.edo = payload.edo();
 				be.markDirty();
+				int approx = Math.floorMod((int) Math.round(xbe.getLogPitch() * 12.0 / Math.log(2.0)) + 12, 24);
+				if(approx != state.get(NoteBlock.NOTE)) {
+					world.setBlockState(pos, state.with(NoteBlock.NOTE, approx));
+					world.markDirty(pos);
+				}
+				world.updateListeners(pos, state, state, Block.NOTIFY_LISTENERS);
 			}
+		});
+		/* CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
+			dispatcher.register(CommandManager.literal("xenupdate").executes((context) -> {
+				MinecraftServer server = context.getSource().getServer();
+				for (ServerWorld world : server.getWorlds()){
+					world.blo
+				}
+				return 1;
+			}));
 		}); // */
 	}
 }

@@ -24,6 +24,7 @@ import net.minecraft.world.World;
 public class XenNoteBlock extends NoteBlock implements BlockEntityProvider {
 	public XenNoteBlock(Settings settings) {
 		super(settings);
+		this.setDefaultState(this.getDefaultState().with(NOTE, 12));
 	}
 
 	@Override
@@ -43,15 +44,14 @@ public class XenNoteBlock extends NoteBlock implements BlockEntityProvider {
 
 	@Override
 	protected boolean onSyncedBlockEvent(BlockState state, World world, BlockPos pos, int type, int data) {
-		NoteBlockInstrument noteBlockInstrument = (NoteBlockInstrument) state.get(INSTRUMENT);
+		NoteBlockInstrument noteBlockInstrument = state.get(INSTRUMENT);
 		float f;
 		if (noteBlockInstrument.canBePitched()) {
 			// int i = (Integer) state.get(NOTE);
 			// f = getNotePitch(i);
-			if (world.isClient) world.updateListeners(pos, state, state, Block.NOTIFY_LISTENERS);
+			world.updateListeners(pos, state, state, Block.NOTIFY_LISTENERS);
 			XenNoteBlockEntity be = (XenNoteBlockEntity) world.getBlockEntity(pos);
-			Temp temp = be.edo==0 ? Temp.JI : EqualTemp.ofOctave(be.edo);
-			f = temp.tune(new Rational(be.p, be.q));
+			f = be.getPitch();
 			world.addParticle(ParticleTypes.NOTE, (double) pos.getX() + 0.5, (double) pos.getY() + 1.2,
 					(double) pos.getZ() + 0.5, 0.5 + Math.log((double) f) / Math.log(4.0), 0.0, 0.0);
 		} else {
@@ -82,4 +82,6 @@ public class XenNoteBlock extends NoteBlock implements BlockEntityProvider {
 			return null;
 		}
 	}
+
+
 }

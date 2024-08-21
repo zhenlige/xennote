@@ -45,4 +45,16 @@ public class XenNoteBlockEntity extends BlockEntity {
 	public NbtCompound toInitialChunkDataNbt(WrapperLookup registryLookup) {
 		return createNbt(registryLookup);
 	}
+	
+	public Temp getTemp() {
+		return edo==0 ? Temp.JI : EqualTemp.ofOctave(edo);
+	}
+	
+	public float getPitch() {
+		return this.getTemp().tune(new Rational(p, q));
+	}
+	
+	public double getLogPitch() {
+		return this.getTemp().logTune(new Rational(p, q));
+	}
 }

@@ -7,6 +7,8 @@ import me.shedaniel.clothconfig2.gui.entries.DoubleListEntry;
 import me.shedaniel.clothconfig2.gui.entries.IntegerListEntry;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.NoteBlock;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.Text;
@@ -31,9 +33,9 @@ public class XennoteClient implements ClientModInitializer {
 				DoubleListEntry entryEdo = entryBuilder.startDoubleField(Text.translatable("option.xennote.edo"), payload.edo()).setMin(0).build();
 				cat.addEntry(entryEdo);
 				builder.setSavingRunnable(() -> {
-					int p = entryP.getValue(), q = entryQ.getValue();
-					int gcd = XennoteMath.gcd(p, q);
-					ClientPlayNetworking.send(new XennotePayload(payload.pos(), p/gcd, q/gcd, entryEdo.getValue()));
+					Rational f = new SimplestRational(entryP.getValue(), entryQ.getValue());
+					int p = f.p, q = f.q;
+					ClientPlayNetworking.send(new XennotePayload(payload.pos(), p, q, entryEdo.getValue()));
 				});
 				Screen screen = builder.build();
 				client.setScreen(screen);

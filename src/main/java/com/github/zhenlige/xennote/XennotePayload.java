@@ -7,9 +7,13 @@ import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.GlobalPos;
 
+/**
+ * Always make sure p/q is the simlest form.
+ */
+
 public record XennotePayload(GlobalPos pos, int p, int q,double edo) implements CustomPayload {
-	public static final Identifier CONFIG_PACKET_ID = Identifier.of("xennote", "config");
-	public static final Id<XennotePayload> ID = new CustomPayload.Id<>(CONFIG_PACKET_ID);
+	public static final Identifier PACKET_ID = Identifier.of("xennote", "config");
+	public static final Id<XennotePayload> ID = new CustomPayload.Id<>(PACKET_ID);
 	public static final PacketCodec<PacketByteBuf, XennotePayload> CODEC = PacketCodec
 			.tuple(GlobalPos.PACKET_CODEC, XennotePayload::pos,
 					PacketCodecs.INTEGER, XennotePayload::p,

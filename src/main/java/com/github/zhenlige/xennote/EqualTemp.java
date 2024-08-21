@@ -4,7 +4,7 @@ import java.util.Iterator;
 import java.util.Map;
 
 public class EqualTemp extends Temp {
-	public double k;
+	public double k; // the temperment is k ed Math.E
 	
 	public EqualTemp(double k) {
 		this.k = k;
@@ -19,6 +19,10 @@ public class EqualTemp extends Temp {
 	}
 	
 	public float tune(Rational x) {
+		return (float) Math.exp(logTune(x));
+	}
+	
+	public double logTune(Rational x) {
 		Map<Integer, Integer> f = XennoteMath.fact(x);
 		int n = 0;
 		Iterator<Map.Entry<Integer, Integer> > it = f.entrySet().iterator();
@@ -27,6 +31,6 @@ public class EqualTemp extends Temp {
             entry = it.next();
             n += Math.round(Math.log(entry.getKey()) * k) * entry.getValue();
         }
-		return (float) Math.exp(n / k);
+		return n / k;
 	}
 }
