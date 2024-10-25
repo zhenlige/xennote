@@ -7,13 +7,18 @@ import me.shedaniel.clothconfig2.gui.entries.DoubleListEntry;
 import me.shedaniel.clothconfig2.gui.entries.IntegerListEntry;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.NoteBlock;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.Text;
+import org.apache.commons.lang3.math.Fraction;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import static com.github.zhenlige.xennote.XennoteMath.pOf;
+import static com.github.zhenlige.xennote.XennoteMath.qOf;
 
 public class XennoteClient implements ClientModInitializer {
+	private static final Logger LOGGER = LoggerFactory.getLogger(Xennote.MOD_ID + " client");
 	@Override
 	public void onInitializeClient() {
 		// This entrypoint is suitable for setting up client-specific logic, such as rendering.
@@ -33,13 +38,14 @@ public class XennoteClient implements ClientModInitializer {
 				DoubleListEntry entryEdo = entryBuilder.startDoubleField(Text.translatable("option.xennote.edo"), payload.edo()).setMin(0).build();
 				cat.addEntry(entryEdo);
 				builder.setSavingRunnable(() -> {
-					Rational f = new SimplestRational(entryP.getValue(), entryQ.getValue());
-					int p = f.p, q = f.q;
+					Fraction f = Fraction.getFraction(entryP.getValue(), entryQ.getValue());
+					int p = pOf(f), q = qOf(f);
 					ClientPlayNetworking.send(new XennotePayload(payload.pos(), p, q, entryEdo.getValue()));
 				});
 				Screen screen = builder.build();
 				client.setScreen(screen);
 			});
 		});
+		WorldTunings.initializeClient();
 	}
 }

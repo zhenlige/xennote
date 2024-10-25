@@ -22,7 +22,7 @@ import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
  */
 @Mixin(NoteBlock.class)
 public abstract class NoteBlockMixin extends Block {
-	public static final Logger LOGGER = LoggerFactory.getLogger("xennote.NoteBlockMixin");
+	private static final Logger LOGGER = LoggerFactory.getLogger("xennote.NoteBlockMixin");
 	public NoteBlockMixin(Settings settings) {
 		super(settings);
 	}

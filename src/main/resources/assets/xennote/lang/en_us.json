@@ -3,5 +3,6 @@
 	"title.xennote.config": "Xenharmonic Note Block Config",
 	"option.xennote.p": "Numerator",
 	"option.xennote.q": "Denominator",
-	"option.xennote.edo": "Tuning to edo (zero for no temperment)"
+	"option.xennote.edo": "Tuning to edo (zero for no temperment)",
+	"argument.tuning.invalid": "Invalid tuning %s"
 }

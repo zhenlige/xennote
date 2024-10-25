@@ -1,5 +1,6 @@
 package com.github.zhenlige.xennote;
 
+import com.github.zhenlige.xennote.annotation.NeedWorldTunings;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockEntityProvider;
@@ -20,6 +21,12 @@ import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.GlobalPos;
 import net.minecraft.world.World;
+import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.spongepowered.asm.mixin.injection.struct.InjectorGroupInfo;
+
+import java.util.Map;
 
 public class XenNoteBlock extends NoteBlock implements BlockEntityProvider {
 	public XenNoteBlock(Settings settings) {
@@ -37,18 +44,17 @@ public class XenNoteBlock extends NoteBlock implements BlockEntityProvider {
 		if (world.isClient) return ActionResult.SUCCESS;
 		XenNoteBlockEntity be = (XenNoteBlockEntity) world.getBlockEntity(pos);
 		ServerPlayNetworking.send((ServerPlayerEntity) player,
-				new XennotePayload(GlobalPos.create(world.getRegistryKey(), pos),
-				be.p, be.q, be.edo));
+			new XennotePayload(GlobalPos.create(world.getRegistryKey(), pos),
+			be.p, be.q, be.edo));
 		return ActionResult.CONSUME;
 	}
 
 	@Override
-	protected boolean onSyncedBlockEvent(BlockState state, World world, BlockPos pos, int type, int data) {
+	protected boolean onSyncedBlockEvent(@NotNull BlockState state, @NotNull World world, BlockPos pos, int type, int data) {
 		NoteBlockInstrument noteBlockInstrument = state.get(INSTRUMENT);
 		float f;
 		if (noteBlockInstrument.canBePitched()) {
-			// int i = (Integer) state.get(NOTE);
-			// f = getNotePitch(i);
+			//WorldTunings.getServerState(world.getServer());
 			world.updateListeners(pos, state, state, Block.NOTIFY_LISTENERS);
 			XenNoteBlockEntity be = (XenNoteBlockEntity) world.getBlockEntity(pos);
 			f = be.getPitch();
@@ -83,5 +89,19 @@ public class XenNoteBlock extends NoteBlock implements BlockEntityProvider {
 		}
 	}
 
-
+	@NeedWorldTunings
+	public static void refreshNote(World world, BlockPos pos) {
+		BlockEntity be = world.getBlockEntity(pos);
+		if (be instanceof XenNoteBlockEntity xbe) {
+			BlockState state = world.getBlockState(pos);
+			int approx = Math.floorMod(
+				Math.round(xbe.getLogPitch() * 12. / Math.log(2.)) + 12,
+				24);
+			if(approx != state.get(NOTE)) {
+				world.setBlockState(pos, state.with(NOTE, approx));
+				world.markDirty(pos);
+			}
+			world.updateListeners(pos, state, state, Block.NOTIFY_LISTENERS);
+		}
+	}
 }

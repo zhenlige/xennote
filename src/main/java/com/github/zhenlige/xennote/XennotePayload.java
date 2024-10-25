@@ -8,18 +8,18 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.GlobalPos;
 
 /**
- * Always make sure p/q is the simlest form.
+ * Always make sure p/q is the simplest form.
  */
 
 public record XennotePayload(GlobalPos pos, int p, int q,double edo) implements CustomPayload {
-	public static final Identifier PACKET_ID = Identifier.of("xennote", "config");
-	public static final Id<XennotePayload> ID = new CustomPayload.Id<>(PACKET_ID);
-	public static final PacketCodec<PacketByteBuf, XennotePayload> CODEC = PacketCodec
-			.tuple(GlobalPos.PACKET_CODEC, XennotePayload::pos,
-					PacketCodecs.INTEGER, XennotePayload::p,
-					PacketCodecs.INTEGER, XennotePayload::q,
-					PacketCodecs.DOUBLE, XennotePayload::edo,
-					XennotePayload::new);
+	public static final Identifier PACKET_ID = Identifier.of(Xennote.MOD_ID, "config");
+	public static final Id<XennotePayload> ID = new Id<>(PACKET_ID);
+	public static final PacketCodec<PacketByteBuf, XennotePayload> CODEC = PacketCodec.tuple(
+		GlobalPos.PACKET_CODEC, XennotePayload::pos,
+		PacketCodecs.INTEGER, XennotePayload::p,
+		PacketCodecs.INTEGER, XennotePayload::q,
+		PacketCodecs.DOUBLE, XennotePayload::edo,
+		XennotePayload::new);
 
 	@Override
 	public Id<? extends CustomPayload> getId() {

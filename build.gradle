@@ -102,7 +102,7 @@ modrinth {
     versionNumber = project.version // You don't need to set this manually. Will fail if Modrinth has this version already
     versionType = "alpha" // `release` or `beta` or `alpha`
     uploadFile = remapJar
-    gameVersions = ["1.21", "1.21.1"] // Must be an array, even with only one version
+    gameVersions = ["1.21.2", "1.21.3"] // Must be an array, even with only one version
     loaders = ["fabric", "quilt"] // Must also be an array - no need to specify this if you're using Loom or ForgeGradle
     dependencies { // A special DSL for creating dependencies
         // scope.type

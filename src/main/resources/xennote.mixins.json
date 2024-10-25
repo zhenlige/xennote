@@ -3,7 +3,8 @@
 	"package": "com.github.zhenlige.xennote.mixin",
 	"compatibilityLevel": "JAVA_21",
 	"mixins": [
-		"PlaySoundCommandMixin"
+		"PlaySoundCommandMixin",
+		"DebugMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

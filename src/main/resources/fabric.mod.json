@@ -16,7 +16,7 @@
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-			"com.github.zhenlige.xennote.XennoteMain"
+          "com.github.zhenlige.xennote.Xennote"
 		],
 		"client": [
 			"com.github.zhenlige.xennote.XennoteClient"
