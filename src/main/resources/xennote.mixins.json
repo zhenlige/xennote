@@ -1,12 +1,12 @@
 {
-	"required": true,
-	"package": "com.github.zhenlige.xennote.mixin",
-	"compatibilityLevel": "JAVA_21",
-	"mixins": [
-		"PlaySoundCommandMixin",
-		"DebugMixin"
-	],
-	"injectors": {
-		"defaultRequire": 1
+  "required": true,
+  "package": "com.github.zhenlige.xennote.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "DebugMixin",
+    "PlaySoundCommandMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
 	}
 }

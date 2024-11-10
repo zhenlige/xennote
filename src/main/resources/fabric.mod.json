@@ -25,6 +25,7 @@
 			"com.github.zhenlige.xennote.XennoteModMenuIntegration"
 		]
 	},
+	"accessWidener": "xennote.accesswidener",
 	"mixins": [
 		"xennote.mixins.json",
 		{
@@ -34,7 +35,7 @@
 	],
 	"depends": {
 		"fabricloader": "*",
-		"minecraft": ">=1.21",
+		"minecraft": ">=1.21.2",
 		"java": ">=21",
 		"fabric-api": "*"
 	},

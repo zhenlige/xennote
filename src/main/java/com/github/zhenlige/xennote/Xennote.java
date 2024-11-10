@@ -1,5 +1,6 @@
 package com.github.zhenlige.xennote;
 
+import com.google.common.collect.ImmutableSet;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.ArgumentTypeRegistry;
@@ -8,7 +9,6 @@ import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.entity.BlockEntity;
@@ -21,8 +21,7 @@ import net.minecraft.item.ItemGroups;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
+import net.minecraft.registry.*;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
@@ -37,6 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
+import java.util.Optional;
 
 
 public class Xennote implements ModInitializer {
@@ -44,12 +44,19 @@ public class Xennote implements ModInitializer {
 
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
-	public static final XenNoteBlock NOTE_BLOCK = new XenNoteBlock(Block.Settings.copy(Blocks.NOTE_BLOCK));
-	public static final BlockItem NOTE_BLOCK_ITEM = new BlockItem(NOTE_BLOCK, new Item.Settings());
+	public static final XenNoteBlock NOTE_BLOCK = new XenNoteBlock(
+		Block.Settings.copy(Blocks.NOTE_BLOCK)
+			.registryKey(RegistryKey.of(RegistryKeys.BLOCK, Identifier.of(MOD_ID, "note_block")))
+	);
+	public static final BlockItem NOTE_BLOCK_ITEM = new BlockItem(NOTE_BLOCK,
+		new Item.Settings()
+			.useBlockPrefixedTranslationKey()
+			.registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(MOD_ID, "note_block")))
+	);
 	public static final BlockEntityType<XenNoteBlockEntity> NOTE_BLOCK_ENTITY = Registry.register(
 		Registries.BLOCK_ENTITY_TYPE, Identifier.of(MOD_ID, "note_block_entity"),
-		FabricBlockEntityTypeBuilder.create(XenNoteBlockEntity::new, NOTE_BLOCK).build());
-	
+		new BlockEntityType<>(XenNoteBlockEntity::new, ImmutableSet.of(NOTE_BLOCK)));
+
 	@Override
 	public void onInitialize() {
 		// This code runs as soon as Minecraft is in a mod-load-ready state.
@@ -72,10 +79,10 @@ public class Xennote implements ModInitializer {
 		PayloadTypeRegistry.playC2S().register(XennotePayload.ID, XennotePayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(UpdateTuningPayload.ID, UpdateTuningPayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(ClientInitPayload.ID, ClientInitPayload.CODEC);
-		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) ->
+		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
 			ServerPlayNetworking.send(handler.player,
-				new ClientInitPayload(WorldTunings.getServerState(server).writeNbt(new NbtCompound(), null)))
-		);
+				new ClientInitPayload(WorldTunings.getServerState(server).writeNbt(new NbtCompound(), null)));
+		});
 		ServerPlayNetworking.registerGlobalReceiver(XennotePayload.ID, (payload, context) -> {
 			World world = context.server().getWorld(payload.pos().dimension());
 			BlockPos pos = payload.pos().pos();

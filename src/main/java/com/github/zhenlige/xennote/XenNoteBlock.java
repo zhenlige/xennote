@@ -51,6 +51,8 @@ public class XenNoteBlock extends NoteBlock implements BlockEntityProvider {
 
 	@Override
 	protected boolean onSyncedBlockEvent(@NotNull BlockState state, @NotNull World world, BlockPos pos, int type, int data) {
+		if (!world.isClient)
+			refreshNote(world, pos);
 		NoteBlockInstrument noteBlockInstrument = state.get(INSTRUMENT);
 		float f;
 		if (noteBlockInstrument.canBePitched()) {
@@ -75,7 +77,7 @@ public class XenNoteBlock extends NoteBlock implements BlockEntityProvider {
 		} else {
 			registryEntry = noteBlockInstrument.getSound();
 		}
-		world.playSound((PlayerEntity) null, (double) pos.getX() + 0.5, (double) pos.getY() + 0.5,
+		world.playSound(null, (double) pos.getX() + 0.5, (double) pos.getY() + 0.5,
 				(double) pos.getZ() + 0.5, registryEntry, SoundCategory.RECORDS, 3.0F, f, world.random.nextLong());
 		return true;
 	}

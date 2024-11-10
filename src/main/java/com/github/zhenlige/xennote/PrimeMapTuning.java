@@ -17,7 +17,7 @@ public class PrimeMapTuning extends Tuning {
 		this.map.putAll(map);
 	}
 
-	public PrimeMapTuning(double[] map) {
+	public PrimeMapTuning(double... map) {
 		for(int i = 0; i < Math.min(map.length, XennoteMath.PRIMES.length); ++i) {
 			this.map.put(XennoteMath.PRIMES[i], map[i]);
 		}
@@ -90,11 +90,11 @@ public class PrimeMapTuning extends Tuning {
 	 * Quarter-comma meantone.
 	 */
 	public static final PrimeMapTuning QCOM_MEANTONE = new PrimeMapTuning
-		(new double[]{Math.log(2), Math.log(5)/4 + Math.log(2), Math.log(5)});
+		(Math.log(2), Math.log(5)/4 + Math.log(2), Math.log(5));
 
 	/**
 	 * Quarter-comma meantone with septimal mappings.
 	 */
 	public static final PrimeMapTuning SEPT_QCOM_MEANTONE = new PrimeMapTuning
-		(new double[]{Math.log(2), Math.log(5)/4 + Math.log(2), Math.log(5), Math.log(5)*2.5 - Math.log(8)});
+		(Math.log(2), Math.log(5)/4 + Math.log(2), Math.log(5), Math.log(5)*2.5 - Math.log(8));
 }
