@@ -1,5 +1,8 @@
 package com.github.zhenlige.xennote;
 
+import com.github.zhenlige.xennote.payload.ClientInitPayload;
+import com.github.zhenlige.xennote.payload.UpdateTuningPayload;
+import com.github.zhenlige.xennote.payload.BlockTuningPayload;
 import com.google.common.collect.ImmutableSet;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import net.fabricmc.api.ModInitializer;
@@ -19,8 +22,6 @@ import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroups;
 import net.minecraft.item.Items;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
 import net.minecraft.registry.*;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.CommandManager;
@@ -41,9 +42,8 @@ import java.util.Optional;
 
 public class Xennote implements ModInitializer {
 	public static final String MOD_ID = "xennote";
-
-	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
-
+	public static final Logger GLOBAL_LOGGER = LoggerFactory.getLogger(MOD_ID + " global");
+	private static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 	public static final XenNoteBlock NOTE_BLOCK = new XenNoteBlock(
 		Block.Settings.copy(Blocks.NOTE_BLOCK)
 			.registryKey(RegistryKey.of(RegistryKeys.BLOCK, Identifier.of(MOD_ID, "note_block")))
@@ -55,7 +55,8 @@ public class Xennote implements ModInitializer {
 	);
 	public static final BlockEntityType<XenNoteBlockEntity> NOTE_BLOCK_ENTITY = Registry.register(
 		Registries.BLOCK_ENTITY_TYPE, Identifier.of(MOD_ID, "note_block_entity"),
-		new BlockEntityType<>(XenNoteBlockEntity::new, ImmutableSet.of(NOTE_BLOCK)));
+		new BlockEntityType<>(XenNoteBlockEntity::new, ImmutableSet.of(NOTE_BLOCK))
+	);
 
 	@Override
 	public void onInitialize() {
@@ -75,24 +76,26 @@ public class Xennote implements ModInitializer {
 	}
 
 	private static void registerNetwork() {
-		PayloadTypeRegistry.playS2C().register(XennotePayload.ID, XennotePayload.CODEC);
-		PayloadTypeRegistry.playC2S().register(XennotePayload.ID, XennotePayload.CODEC);
+		PayloadTypeRegistry.playS2C().register(BlockTuningPayload.ID, BlockTuningPayload.CODEC);
+		PayloadTypeRegistry.playC2S().register(BlockTuningPayload.ID, BlockTuningPayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(UpdateTuningPayload.ID, UpdateTuningPayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(ClientInitPayload.ID, ClientInitPayload.CODEC);
-		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
-			ServerPlayNetworking.send(handler.player,
-				new ClientInitPayload(WorldTunings.getServerState(server).writeNbt(new NbtCompound(), null)));
-		});
-		ServerPlayNetworking.registerGlobalReceiver(XennotePayload.ID, (payload, context) -> {
+		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) ->
+			ServerPlayNetworking.send(
+				handler.player,
+				new ClientInitPayload(WorldTunings.getServerState(server).tunings)
+			)
+		);
+		ServerPlayNetworking.registerGlobalReceiver(BlockTuningPayload.ID, (payload, context) -> {
 			World world = context.server().getWorld(payload.pos().dimension());
 			BlockPos pos = payload.pos().pos();
 			BlockEntity be = world.getBlockEntity(pos);
 			if (be instanceof XenNoteBlockEntity xbe) {
 				xbe.p = payload.p();
 				xbe.q = payload.q();
-				xbe.edo = payload.edo();
+				xbe.tuningRef = payload.tuningRef();
 				be.markDirty();
-				XenNoteBlock.refreshNote(world, pos);
+				//XenNoteBlock.refreshNote(world, pos);
 			}
 		});
 	}
@@ -108,6 +111,7 @@ public class Xennote implements ModInitializer {
 		// /tuning remove <tuning>
 		// /tuning show <tuning>
 		// /tuning showall
+		// TODO /tuning gui
 		CommandRegistrationCallback.EVENT.register(
 			(dispatcher, registryAccess, environment) -> dispatcher.register(CommandManager.literal("tuning")
 				.then(CommandManager.literal("set")
@@ -120,13 +124,12 @@ public class Xennote implements ModInitializer {
 									WorldTunings.getServerState(source.getServer());
 									BlockPos pos1 = BlockPosArgumentType.getBlockPos(context, "from");
 									BlockPos pos2 = BlockPosArgumentType.getBlockPos(context, "to");
-									NbtElement nbt = TuningArgumentType.getTuningNbt(context, "tuning");
+									TuningRef ref = TuningArgumentType.getTuningRef(context, "tuning");
 									//BlockBox box = BlockBox.create(pos1, pos2);
 									for (BlockPos pos : BlockPos.iterate(pos1, pos2)) {
 										BlockEntity be = world.getBlockEntity(pos);
 										if (be instanceof XenNoteBlockEntity xbe) {
-											xbe.tuningNbt = nbt;
-											xbe.markDirty();
+											xbe.tuningRef = ref;
 											XenNoteBlock.refreshNote(world, pos);
 										}
 									}
@@ -139,11 +142,10 @@ public class Xennote implements ModInitializer {
 								ServerWorld world = source.getWorld();
 								WorldTunings.getServerState(source.getServer());
 								BlockPos pos = BlockPosArgumentType.getBlockPos(context, "from");
-								NbtElement nbt = TuningArgumentType.getTuningNbt(context, "tuning");
+								TuningRef ref = TuningArgumentType.getTuningRef(context, "tuning");
 								BlockEntity be = world.getBlockEntity(pos);
 								if (be instanceof XenNoteBlockEntity xbe) {
-									xbe.tuningNbt = nbt;
-									xbe.markDirty();
+									xbe.tuningRef = ref;
 									XenNoteBlock.refreshNote(world, pos);
 								}
 								return 1;
@@ -157,10 +159,10 @@ public class Xennote implements ModInitializer {
 								MinecraftServer server = context.getSource().getServer();
 								WorldTunings tunings = WorldTunings.getServerState(server);
 								String id = StringArgumentType.getString(context, "id");
-								NbtElement tuningNbt = TuningArgumentType.getTuningNbt(context, "tuning");
-								tunings.tunings.put(id, Tuning.fromNbt(tuningNbt));
+								Tuning tuning = TuningArgumentType.getTuning(context, "tuning");
+								tunings.tunings.put(id, tuning);
 								for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList())
-									ServerPlayNetworking.send(player, new UpdateTuningPayload(id, tuningNbt));
+									ServerPlayNetworking.send(player, new UpdateTuningPayload(id, Optional.of(tuning)));
 								return 1;
 							})
 						)
@@ -173,7 +175,7 @@ public class Xennote implements ModInitializer {
 							String id = StringArgumentType.getString(context, "id");
 							tunings.tunings.remove(id);
 							for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList())
-								ServerPlayNetworking.send(player, new UpdateTuningPayload(id, new NbtCompound()));
+								ServerPlayNetworking.send(player, new UpdateTuningPayload(id, Optional.empty()));
 							return 1;
 						})
 					)

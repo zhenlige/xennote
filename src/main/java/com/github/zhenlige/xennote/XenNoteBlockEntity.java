@@ -1,11 +1,7 @@
 package com.github.zhenlige.xennote;
 
 import com.github.zhenlige.xennote.annotation.NeedWorldTunings;
-import net.minecraft.nbt.NbtDouble;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtString;
 import org.apache.commons.lang3.math.Fraction;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.block.BlockState;
@@ -18,12 +14,9 @@ import net.minecraft.registry.RegistryWrapper.WrapperLookup;
 import net.minecraft.util.math.BlockPos;
 
 public class XenNoteBlockEntity extends BlockEntity {
-	public static final NbtString JI = NbtString.of("ji");
-
 	public int p = 1, q = 1; // The frequency is multiplied by p/q
-	public double edo = 0; // 0 for infinity
-	@NotNull
-	public NbtElement tuningNbt = JI;
+
+	public TuningRef tuningRef = TuningRef.JI;
 	
 	public XenNoteBlockEntity(BlockPos pos, BlockState state) {
 		super(Xennote.NOTE_BLOCK_ENTITY, pos, state);
@@ -36,7 +29,7 @@ public class XenNoteBlockEntity extends BlockEntity {
 		//nbt.putDouble("edo", edo);
 		// update to post-v0.3.0 form
 		//nbt.remove("edo");
-		nbt.put("tuning", tuningNbt);
+		nbt.put("tuning", tuningRef.toNbt());
 		super.writeNbt(nbt, registryLookup);
 	}
 	@Override
@@ -46,14 +39,14 @@ public class XenNoteBlockEntity extends BlockEntity {
 		q = nbt.getInt("q");
 		//edo = nbt.getDouble("edo");
 		if (nbt.contains("tuning")) {
-			tuningNbt = nbt.get("tuning");
+			tuningRef = TuningRef.fromNbt(nbt.get("tuning"));
 		} else if (nbt.contains("edo")) {
 			// compatibility for v0.2.0 and earlier
 			double edo = nbt.getDouble("edo");
-			tuningNbt = edo == 0 ? JI : NbtDouble.of(edo / Math.log(2.));
-		}
-		else {
-			tuningNbt = JI;
+			tuningRef = edo == 0
+				? TuningRef.JI
+				: TuningRef.ofConst(new EqualTuning(edo / Math.log(2.)));
+			markDirty();
 		}
 	}
 
@@ -70,9 +63,7 @@ public class XenNoteBlockEntity extends BlockEntity {
 
 	@NeedWorldTunings
 	public Tuning getTuning() {
-		if (tuningNbt instanceof NbtDouble k)
-			return new EqualTuning(k.doubleValue());
-		return Tuning.fromNbt(tuningNbt);
+		return tuningRef.getTuning();
 	}
 
 	@NeedWorldTunings

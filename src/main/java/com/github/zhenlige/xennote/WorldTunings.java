@@ -1,6 +1,8 @@
 package com.github.zhenlige.xennote;
 
 import com.github.zhenlige.xennote.annotation.NeedWorldTunings;
+import com.github.zhenlige.xennote.payload.ClientInitPayload;
+import com.github.zhenlige.xennote.payload.UpdateTuningPayload;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -21,17 +23,34 @@ import java.util.Map;
 
 public class WorldTunings extends PersistentState {
 	private static final Logger LOGGER = LoggerFactory.getLogger(WorldTunings.class);
-
 	public static final Map<String, Tuning> BUILT_IN_TUNINGS;
-
 	private static WorldTunings current;
 
 	static {
 		Map<String, Tuning> map = new HashMap<>();
 
-		map.put("ji", Tuning.JI);
-		map.put("qcomMeantone", PrimeMapTuning.QCOM_MEANTONE);
-		map.put("septQcomMeantone", PrimeMapTuning.SEPT_QCOM_MEANTONE);
+		map.put("ji", JI = new Tuning());
+		map.put("qcomMeantone", QCOM_MEANTONE = new PrimeMapTuning(
+			Math.log(2.),
+			Math.log(80.) / 4.,
+			Math.log(5.)
+		));
+		map.put("septQcomMeantone", SEPT_QCOM_MEANTONE = new PrimeMapTuning(
+			Math.log(2.),
+			Math.log(80.) / 4.,
+			Math.log(5.),
+			Math.log(5.) * 2.5 - Math.log(8.)
+		));
+		map.put("argent", ARGENT = new PrimeMapTuning(
+			Math.log(2.),
+			Math.log(2.) * (3. - Math.sqrt(2.))
+		));
+		map.put("argentHemi5ths", ARGENT_HEMI5THS = new PrimeMapTuning(
+			Math.log(2.),
+			Math.log(2.) * (3. - Math.sqrt(2.)),
+			Math.log(2.) * (20 - 12.5 * Math.sqrt(2.)),
+			Math.log(2.) * (12 - 6.5 * Math.sqrt(2.))
+		));
 
 		BUILT_IN_TUNINGS = map;
 	}
@@ -97,14 +116,14 @@ public class WorldTunings extends PersistentState {
 	public static void initializeClient() {
 		LOGGER.debug("start client initializing");
 		ClientPlayNetworking.registerGlobalReceiver(UpdateTuningPayload.ID, (payload, context) -> {
-			if (payload.tuningNbt() instanceof NbtCompound nbt && nbt.isEmpty()) {
+			if (payload.tuning().isEmpty()) {
 				current.tunings.remove(payload.tuningId());
 			} else {
-				current.tunings.put(payload.tuningId(), Tuning.fromNbt(payload.tuningNbt()));
+				current.tunings.put(payload.tuningId(), payload.tuning().orElse(JI));
 			}
 		});
 		ClientPlayNetworking.registerGlobalReceiver(ClientInitPayload.ID, (payload, context) -> {
-			current = createFromNbt(payload.tuningList(), null);
+			current = new WorldTunings(payload.tuningMap());
 			log();
 		});
 	}
@@ -113,4 +132,19 @@ public class WorldTunings extends PersistentState {
 	public static WorldTunings getCurrent() {
 		return current;
 	}
+
+	/** Just intonation. */
+	public static final Tuning JI;
+
+	/** Quarter-comma meantone. */
+	public static final PrimeMapTuning QCOM_MEANTONE;
+
+	/** Quarter-comma meantone with septimal mappings. */
+	public static final PrimeMapTuning SEPT_QCOM_MEANTONE;
+
+	/** Argent tuning. */
+	public static final PrimeMapTuning ARGENT;
+
+	/** Argent tuning with hemififths mappings. */
+	public static final PrimeMapTuning ARGENT_HEMI5THS;
 }

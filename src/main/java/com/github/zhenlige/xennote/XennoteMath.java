@@ -1,6 +1,7 @@
 package com.github.zhenlige.xennote;
 
 import org.apache.commons.lang3.math.Fraction;
+import org.apache.commons.numbers.primes.Primes;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -22,57 +23,32 @@ public class XennoteMath {
 	 */
 	public static final double PHI = 1.618033988749895;
 
-	public static final double IHP = 0.6180339887498949;
-
-	public static final int[] PRIMES = new int[] {
-		 2, 3, 5, 7,11,13,17,19,23,29,
-		31,37,41,43,47,53,59,61,67,71,
-		73,79,83,89,97
-	};
-
-	public static final int MIN_PRIME_OUT = 101;
-
 	public static HashMap<Integer, Integer> fact(int x) {
 		if (x == 0) return null;
-		HashMap<Integer, Integer> res = new HashMap<>();
+		if (x == 1) return new HashMap<>();
+		HashMap<Integer, Integer> ans = new HashMap<>();
 		if (x == Integer.MIN_VALUE) {
-			res.put(2, Integer.SIZE - 1);
-			return res;
+			ans.put(2, Integer.SIZE - 1);
+			return ans;
 		}
 		x = Math.abs(x);
-		for (int p : PRIMES) {
-			int n = 0;
-			while (x % p == 0) {
-				++n;
-				x /= p;
-			}
-			if (n != 0) res.put(p, n);
-			if (x == 1) return res;
+		var list = Primes.primeFactors(x);
+		for (int i : list) {
+			if (ans.containsKey(i)) ans.put(i, ans.get(i) + 1);
+			else ans.put(i, 1);
 		}
-		if (x < MIN_PRIME_OUT * MIN_PRIME_OUT) {
-			res.put(x, 1);
-			return res;
-		}
-		for (int p = MIN_PRIME_OUT; x > 1; ++p) {
-			int n = 0;
-			while (x % p == 0) {
-				++n;
-				x /= p;
-			}
-			if (n != 0) res.put(p, n);
-		}
-		return res;
+		return ans;
 	}
 
 	public static HashMap<Integer, Integer> fact(int x, Set<Integer> primes) {
 		if (x == 0) return null;
-		HashMap<Integer, Integer> res = new HashMap<>();
+		HashMap<Integer, Integer> ans = new HashMap<>();
 		if (x == Integer.MIN_VALUE) {
 			if (primes.contains(2))
-				res.put(2, Integer.SIZE - 1);
+				ans.put(2, Integer.SIZE - 1);
 			else
-				res.put(x, 1);
-			return res;
+				ans.put(x, 1);
+			return ans;
 		}
 		x = Math.abs(x);
 		for (int p : primes) {
@@ -81,39 +57,39 @@ public class XennoteMath {
 				++n;
 				x /= p;
 			}
-			if (n != 0) res.put(p, n);
-			if (x == 1) return res;
+			if (n != 0) ans.put(p, n);
+			if (x == 1) return ans;
 		}
-		res.put(x, 1);
-		return res;
+		ans.put(x, 1);
+		return ans;
 	}
 
 	public static HashMap<Integer, Integer> fact(Fraction x) {
-		HashMap<Integer, Integer> res = fact(qOf(x));
-		if (res != null) {
-			Iterator<Map.Entry<Integer, Integer>> it = res.entrySet().iterator();
+		HashMap<Integer, Integer> ans = fact(qOf(x));
+		if (ans != null) {
+			Iterator<Map.Entry<Integer, Integer>> ite = ans.entrySet().iterator();
 			Map.Entry<Integer, Integer> entry;
-			while (it.hasNext()) {
-				entry = it.next();
+			while (ite.hasNext()) {
+				entry = ite.next();
 				entry.setValue(-entry.getValue());
 			}
-			res.putAll(fact(pOf(x)));
+			ans.putAll(fact(pOf(x)));
 		}
-		return res;
+		return ans;
 	}
 
 	public static HashMap<Integer, Integer> fact(Fraction x, Set<Integer> primes) {
-		HashMap<Integer, Integer> res = fact(qOf(x), primes);
-		if (res != null) {
-			Iterator<Map.Entry<Integer, Integer> > it = res.entrySet().iterator();
+		HashMap<Integer, Integer> ans = fact(qOf(x), primes);
+		if (ans != null) {
+			Iterator<Map.Entry<Integer, Integer> > ite = ans.entrySet().iterator();
 			Map.Entry<Integer, Integer> entry;
-			while (it.hasNext()) {
-				entry = it.next();
+			while (ite.hasNext()) {
+				entry = ite.next();
 				entry.setValue(-entry.getValue());
 			}
-			res.putAll(fact(pOf(x), primes));
+			ans.putAll(fact(pOf(x), primes));
 		}
-		return res;
+		return ans;
 	}
 
 	/**

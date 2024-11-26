@@ -7,8 +7,6 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtString;
 import net.minecraft.nbt.StringNbtReader;
 import net.minecraft.text.Text;
 import org.slf4j.Logger;
@@ -17,19 +15,20 @@ import org.slf4j.LoggerFactory;
 import java.util.Collection;
 import java.util.List;
 
-public class TuningArgumentType implements ArgumentType<NbtElement> {
+public class TuningArgumentType implements ArgumentType<TuningRef> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TuningArgumentType.class);
+
 	public static TuningArgumentType tuning() {
 		return new TuningArgumentType();
 	}
 
 	@NeedWorldTunings
 	public static <S> Tuning getTuning(CommandContext<S> context, String name) {
-		return Tuning.fromNbt(getTuningNbt(context, name));
+		return getTuningRef(context, name).getTuning();
 	}
 
-	public static <S> NbtElement getTuningNbt(CommandContext<S> context, String name) {
-		return context.getArgument(name, NbtElement.class);
+	public static <S> TuningRef getTuningRef(CommandContext<S> context, String name) {
+		return context.getArgument(name, TuningRef.class);
 	}
 
 	private static final Collection<String> EXAMPLES = List.of(
@@ -52,13 +51,12 @@ public class TuningArgumentType implements ArgumentType<NbtElement> {
 		// tuning NBT
 		"{type:\"primeMap\",primeMap:[{prime:2,mapTo:0.69},{prime:3,mapTo:1.10}]}"
 	);
-
 	public static final DynamicCommandExceptionType INVALID_TUNING = new DynamicCommandExceptionType(
 		o -> Text.translatable("argument.tuning.invalid",  o)
 	);
 
 	@Override
-	public NbtElement parse(StringReader reader) throws CommandSyntaxException {
+	public TuningRef parse(StringReader reader) throws CommandSyntaxException {
 		// read argument string
 		int argBeginning = reader.getCursor();
 		if (!reader.canRead()) reader.skip();
@@ -89,23 +87,28 @@ public class TuningArgumentType implements ArgumentType<NbtElement> {
 							case "phi", "Phi" -> XennoteMath.PHI;
 							default -> XennoteMath.parseDouble(periodStr);
 						};
-						if (ed > 0) {
-							LOGGER.debug("Parsed {}ed{} (aka {})", ed, periodStr, period);
-							tuning = EqualTuning.of(ed, period);
-						}
-						else throw new Exception();
+						if (ed > 0.) {
+							if (period > 1.) {
+								LOGGER.debug("Parsed {}ed{} (aka {})", ed, periodStr, period);
+								tuning = EqualTuning.of(ed, period);
+							} else throw CommandSyntaxException.BUILT_IN_EXCEPTIONS.doubleTooLow().create(period, 1.);
+						} else throw CommandSyntaxException.BUILT_IN_EXCEPTIONS.doubleTooLow().create(ed, 0.);
 					} else {
 						ed = XennoteMath.parseDouble(str);
-						LOGGER.debug("Parsed {}ede", ed);
-						tuning = new EqualTuning(ed);
+						if (ed > 0.) {
+							LOGGER.debug("Parsed {}ede", ed);
+							tuning = new EqualTuning(ed);
+						} else throw CommandSyntaxException.BUILT_IN_EXCEPTIONS.doubleTooLow().create(ed, 0.);
 					}
 				} catch (NumberFormatException ex1) {
 					LOGGER.debug("Parsed tuning ID: {}", str);
 					// try world tunings
-					return NbtString.of(str);
+					if (str.matches("[A-Za-z_]\\w*"))
+						return TuningRef.ofVar(str);
+					else throw new Exception(str);
 				}
 			}
-			return tuning.toNbt();
+			return TuningRef.ofConst(tuning);
 		} catch (Exception ex) {
 			reader.setCursor(argBeginning);
 			throw INVALID_TUNING.createWithContext(reader, ex.getMessage());

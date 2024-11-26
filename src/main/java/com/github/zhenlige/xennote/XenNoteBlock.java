@@ -1,6 +1,7 @@
 package com.github.zhenlige.xennote;
 
 import com.github.zhenlige.xennote.annotation.NeedWorldTunings;
+import com.github.zhenlige.xennote.payload.BlockTuningPayload;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockEntityProvider;
@@ -22,13 +23,10 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.GlobalPos;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.spongepowered.asm.mixin.injection.struct.InjectorGroupInfo;
-
-import java.util.Map;
 
 public class XenNoteBlock extends NoteBlock implements BlockEntityProvider {
+	private static float pitch = 1.f;
+	private static double logPitch = 0.;
 	public XenNoteBlock(Settings settings) {
 		super(settings);
 		this.setDefaultState(this.getDefaultState().with(NOTE, 12));
@@ -44,26 +42,24 @@ public class XenNoteBlock extends NoteBlock implements BlockEntityProvider {
 		if (world.isClient) return ActionResult.SUCCESS;
 		XenNoteBlockEntity be = (XenNoteBlockEntity) world.getBlockEntity(pos);
 		ServerPlayNetworking.send((ServerPlayerEntity) player,
-			new XennotePayload(GlobalPos.create(world.getRegistryKey(), pos),
-			be.p, be.q, be.edo));
+			new BlockTuningPayload(GlobalPos.create(world.getRegistryKey(), pos),
+			be.p, be.q, be.tuningRef));
 		return ActionResult.CONSUME;
 	}
 
 	@Override
 	protected boolean onSyncedBlockEvent(@NotNull BlockState state, @NotNull World world, BlockPos pos, int type, int data) {
-		if (!world.isClient)
-			refreshNote(world, pos);
+		refreshNote(world, pos);
 		NoteBlockInstrument noteBlockInstrument = state.get(INSTRUMENT);
 		float f;
 		if (noteBlockInstrument.canBePitched()) {
 			//WorldTunings.getServerState(world.getServer());
 			world.updateListeners(pos, state, state, Block.NOTIFY_LISTENERS);
-			XenNoteBlockEntity be = (XenNoteBlockEntity) world.getBlockEntity(pos);
-			f = be.getPitch();
+			f = pitch;
 			world.addParticle(ParticleTypes.NOTE, (double) pos.getX() + 0.5, (double) pos.getY() + 1.2,
-					(double) pos.getZ() + 0.5, 0.5 + Math.log((double) f) / Math.log(4.0), 0.0, 0.0);
+					(double) pos.getZ() + 0.5, 0.5 + logPitch / Math.log(4.), 0., 0.);
 		} else {
-			f = 1.0F;
+			f = 1.F;
 		}
 
 		RegistryEntry<SoundEvent> registryEntry;
@@ -78,7 +74,7 @@ public class XenNoteBlock extends NoteBlock implements BlockEntityProvider {
 			registryEntry = noteBlockInstrument.getSound();
 		}
 		world.playSound(null, (double) pos.getX() + 0.5, (double) pos.getY() + 0.5,
-				(double) pos.getZ() + 0.5, registryEntry, SoundCategory.RECORDS, 3.0F, f, world.random.nextLong());
+				(double) pos.getZ() + 0.5, registryEntry, SoundCategory.RECORDS, 3.F, f, world.random.nextLong());
 		return true;
 	}
 
@@ -95,9 +91,12 @@ public class XenNoteBlock extends NoteBlock implements BlockEntityProvider {
 	public static void refreshNote(World world, BlockPos pos) {
 		BlockEntity be = world.getBlockEntity(pos);
 		if (be instanceof XenNoteBlockEntity xbe) {
+			xbe.markDirty();
+			logPitch = xbe.getLogPitch();
+			pitch = (float) Math.exp(logPitch);
 			BlockState state = world.getBlockState(pos);
 			int approx = Math.floorMod(
-				Math.round(xbe.getLogPitch() * 12. / Math.log(2.)) + 12,
+				Math.round(logPitch * 12. / Math.log(2.)) + 12,
 				24);
 			if(approx != state.get(NOTE)) {
 				world.setBlockState(pos, state.with(NOTE, approx));

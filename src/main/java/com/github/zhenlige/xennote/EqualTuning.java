@@ -1,27 +1,51 @@
 package com.github.zhenlige.xennote;
 
+import io.netty.buffer.ByteBuf;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.network.codec.PacketCodecs;
 import org.apache.commons.lang3.math.Fraction;
 
 import java.util.Map;
 
 public class EqualTuning extends Tuning {
-
-	/**
-	 * The inverse of the step size. The temperment is <code>k</code> ed <code>Math.E</code>.
-	 */
-	public double k;
-
-	public EqualTuning(double k) {
-		this.k = k;
+	@Override
+	public TuningType getType() {
+		return TuningType.EQUAL;
 	}
-	
-	public static EqualTuning ofOctave(double edo) {
-		return new EqualTuning(edo / Math.log(2.0));
+
+	/** The inverse of the step size. The temperment is <code>ede</code> ed <code>Math.E</code>. */
+	public double ede;
+
+	public EqualTuning(double ede) {
+		this.ede = ede;
 	}
-	
+
 	public static EqualTuning of(double ed, double period) {
 		return new EqualTuning(ed / Math.log(period));
+	}
+
+	protected EqualTuning(NbtCompound nbt) {
+		super(nbt);
+		if (nbt.contains("ede"))
+			ede = nbt.getDouble("ede");
+		else ede = 12 / Math.log(2.);
+	}
+
+	public NbtCompound toNbt() {
+		NbtCompound nbt = super.toNbt();
+		nbt.putDouble("ede", ede);
+		return nbt;
+	}
+
+	protected EqualTuning(ByteBuf buf) {
+		super(buf);
+		ede = PacketCodecs.DOUBLE.decode(buf);
+	}
+
+	@Override
+	protected void encode(ByteBuf buf) {
+		super.encode(buf);
+		PacketCodecs.DOUBLE.encode(buf, ede);
 	}
 
 	@Override
@@ -29,25 +53,8 @@ public class EqualTuning extends Tuning {
 		Map<Integer, Integer> fact = XennoteMath.fact(x);
 		long n = 0;
         for (Map.Entry<Integer, Integer> i : fact.entrySet()) {
-            n += Math.round(Math.log(i.getKey()) * k) * i.getValue();
+            n += Math.round(Math.log(i.getKey()) * ede) * i.getValue();
         }
-		return n / k * stretch;
-	}
-
-	public static EqualTuning fromNbt(NbtCompound nbt) {
-		EqualTuning tuning;
-		if (nbt.contains("ede"))
-			tuning = new EqualTuning(nbt.getDouble("ede"));
-		else tuning = ofOctave(12);
-		if (nbt.contains("stretch"))
-			tuning = (EqualTuning) tuning.restretch(nbt.getDouble("stretch"));
-		return tuning;
-	}
-
-	public NbtCompound toNbt() {
-		NbtCompound nbt = super.toNbt();
-		nbt.putString("type", EQUAL_TYPE);
-		nbt.putDouble("ede", k);
-		return nbt;
+		return n / ede * stretch;
 	}
 }

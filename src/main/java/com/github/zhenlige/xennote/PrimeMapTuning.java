@@ -1,14 +1,21 @@
 package com.github.zhenlige.xennote;
 
+import io.netty.buffer.ByteBuf;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
+import net.minecraft.network.codec.PacketCodecs;
 import org.apache.commons.lang3.math.Fraction;
+import org.apache.commons.numbers.primes.Primes;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class PrimeMapTuning extends Tuning {
+	@Override
+	public TuningType getType() {
+		return TuningType.PRIME_MAP;
+	}
 	public Map<Integer, Double> map = new HashMap<>();
 
 	public PrimeMapTuning() {}
@@ -18,20 +25,57 @@ public class PrimeMapTuning extends Tuning {
 	}
 
 	public PrimeMapTuning(double... map) {
-		for(int i = 0; i < Math.min(map.length, XennoteMath.PRIMES.length); ++i) {
-			this.map.put(XennoteMath.PRIMES[i], map[i]);
+		int p = 2;
+		for (double v : map) {
+			this.map.put(p, v);
+			p = Primes.nextPrime(p + 1);
 		}
 	}
 
-
-	public <T> PrimeMapTuning(T map, double stretch) {
-		this(map);
-		this.stretch = stretch;
+	protected PrimeMapTuning(NbtCompound nbt) {
+		super(nbt);
+		NbtList mapNbt = nbt.getList("primeMap", NbtElement.COMPOUND_TYPE);
+		for (NbtElement i : mapNbt) {
+			if (i instanceof NbtCompound singleMap) {
+				int prime = singleMap.getInt("prime");
+				if (Primes.isPrime(prime))
+					map.put(prime, singleMap.getDouble("mapTo"));
+			}
+		}
 	}
 
-	public <T> PrimeMapTuning(T map) {
-		throw new RuntimeException("xennote.PrimeMapTuning: Invalid map representation");
-		// for passing compiler
+	@Override
+	public NbtCompound toNbt() {
+		NbtCompound nbt = super.toNbt();
+		NbtList mapNbt = new NbtList();
+		for (Map.Entry<Integer, Double> i : map.entrySet()) {
+			NbtCompound singleMap = new NbtCompound();
+			singleMap.putInt("prime", i.getKey());
+			singleMap.putDouble("mapTo", i.getValue());
+			mapNbt.add(singleMap);
+		}
+		nbt.put("primeMap", mapNbt);
+		return nbt;
+	}
+
+	protected PrimeMapTuning(ByteBuf buf) {
+		super(buf);
+		int prime;
+		double mapTo;
+		while ((prime = PacketCodecs.INTEGER.decode(buf)) != 0) {
+			mapTo = PacketCodecs.DOUBLE.decode(buf);
+			map.put(prime, mapTo);
+		}
+	}
+
+	@Override
+	protected void encode(ByteBuf buf) {
+		super.encode(buf);
+		for (Map.Entry<Integer, Double> i : map.entrySet()) {
+			PacketCodecs.INTEGER.encode(buf, i.getKey());
+			PacketCodecs.DOUBLE.encode(buf, i.getValue());
+		}
+		PacketCodecs.INTEGER.encode(buf, 0);
 	}
 
 	public PrimeMapTuning clone() {
@@ -39,6 +83,8 @@ public class PrimeMapTuning extends Tuning {
 		tuning.map.putAll(map);
 		return tuning;
 	}
+
+	@Override
 	public double logTune(Fraction x) {
 		Map<Integer, Integer> fact = XennoteMath.fact(x, map.keySet());
 		double res = 0;
@@ -51,33 +97,6 @@ public class PrimeMapTuning extends Tuning {
 		return res;
 	}
 
-	public static PrimeMapTuning fromNbt(NbtCompound nbt) {
-		PrimeMapTuning tuning = new PrimeMapTuning();
-		NbtList maps = nbt.getList("primeMap", NbtElement.COMPOUND_TYPE);
-		for (NbtElement i : maps) {
-			if (i instanceof NbtCompound map) {
-				tuning.map.put(map.getInt("prime"), map.getDouble("mapTo"));
-			}
-		}
-		if (nbt.contains("stretch")) tuning.stretch = nbt.getDouble("stretch");
-		return tuning;
-	}
-
-	@Override
-	public NbtCompound toNbt() {
-		NbtCompound nbt = super.toNbt();
-		nbt.putString("type", PRIME_MAP_TYPE);
-		NbtList mapNbt = new NbtList();
-		for (Map.Entry<Integer, Double> i : map.entrySet()) {
-			NbtCompound singleMap = new NbtCompound();
-			singleMap.putInt("prime", i.getKey());
-			singleMap.putDouble("mapTo", i.getValue());
-			mapNbt.add(singleMap);
-		}
-		nbt.put("primeMap", mapNbt);
-		return nbt;
-	}
-
 	public PrimeMapTuning restretch(double k) {
 		PrimeMapTuning tuning = (PrimeMapTuning) super.restretch(k);
 		for (Map.Entry<Integer, Double> i : tuning.map.entrySet()) {
@@ -85,16 +104,4 @@ public class PrimeMapTuning extends Tuning {
 		}
 		return tuning;
 	}
-
-	/**
-	 * Quarter-comma meantone.
-	 */
-	public static final PrimeMapTuning QCOM_MEANTONE = new PrimeMapTuning
-		(Math.log(2), Math.log(5)/4 + Math.log(2), Math.log(5));
-
-	/**
-	 * Quarter-comma meantone with septimal mappings.
-	 */
-	public static final PrimeMapTuning SEPT_QCOM_MEANTONE = new PrimeMapTuning
-		(Math.log(2), Math.log(5)/4 + Math.log(2), Math.log(5), Math.log(5)*2.5 - Math.log(8));
 }

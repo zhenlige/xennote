@@ -1,7 +1,17 @@
 {
 	"block.xennote.note_block": "微分音音符盒",
-	"title.xennote.config": "微分音音符盒设置",
+	"title.xennote.config": "微分音音符盒配置",
 	"option.xennote.p": "分子",
 	"option.xennote.q": "分母",
-	"option.xennote.edo": "调整到平均律（值为0则不调律）"
+	"option.xennote.tuning_ref": "调律引用",
+	"option.xennote.tuning_id": "调律ID",
+	"option.xennote.tuning": "调律",
+	"option.xennote.type": "类型",
+	"option.xennote.stretch": "拉伸值",
+	"option.xennote.ede": "平均律中e的等分数量",
+	"option.xennote.prime_map_list": "质数映射列表",
+	"option.xennote.prime_map": "质数映射",
+	"option.xennote.prime": "质数",
+	"option.xennote.map_to": "映射到音程",
+	"argument.tuning.invalid": "无效调律参数：%s"
 }

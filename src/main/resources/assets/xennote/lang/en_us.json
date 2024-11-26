@@ -3,6 +3,15 @@
 	"title.xennote.config": "Xenharmonic Note Block Config",
 	"option.xennote.p": "Numerator",
 	"option.xennote.q": "Denominator",
-	"option.xennote.edo": "Tuning to edo (zero for no temperment)",
-	"argument.tuning.invalid": "Invalid tuning %s"
+	"option.xennote.tuning_ref": "Tuning reference",
+	"option.xennote.tuning_id": "Tuning ID",
+	"option.xennote.tuning": "Tuning",
+	"option.xennote.type": "Type",
+	"option.xennote.stretch": "Stretching value",
+	"option.xennote.ede": "Equal division number of e for ET",
+	"option.xennote.prime_map_list": "Prime mapping list",
+	"option.xennote.prime_map": "Prime mapping",
+	"option.xennote.prime": "Prime",
+	"option.xennote.map_to": "Mapped to interval",
+	"argument.tuning.invalid": "Invalid tuning argument: %s"
 }
