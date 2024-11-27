@@ -95,7 +95,7 @@ public class Xennote implements ModInitializer {
 				xbe.q = payload.q();
 				xbe.tuningRef = payload.tuningRef();
 				be.markDirty();
-				//XenNoteBlock.refreshNote(world, pos);
+				XenNoteBlock.refreshNote(world, pos);
 			}
 		});
 	}

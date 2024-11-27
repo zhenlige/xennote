@@ -130,7 +130,8 @@ public final class EntryManager {
 		}
 
 		public SubCategoryListEntry createEntry(ConfigEntryBuilder entryBuilder) {
-			SubCategoryBuilder builder = entryBuilder.startSubCategory(Text.translatable("option.xennote.tuning"));
+			SubCategoryBuilder builder = entryBuilder.startSubCategory(Text.translatable("option.xennote.tuning"))
+				.setExpanded(true);
 			var typeEntry = entryBuilder.startEnumSelector(
 				Text.translatable("option.xennote.type"),
 				Tuning.TuningType.class,
@@ -173,7 +174,8 @@ public final class EntryManager {
 		}
 
 		public SubCategoryListEntry createEntry(ConfigEntryBuilder entryBuilder) {
-			SubCategoryBuilder builder = entryBuilder.startSubCategory(Text.translatable("option.xennote.tuning_ref"));
+			SubCategoryBuilder builder = entryBuilder.startSubCategory(Text.translatable("option.xennote.tuning_ref"))
+				.setExpanded(true);
 			var typeEntry = entryBuilder.startEnumSelector(
 				Text.translatable("option.xennote.type"),
 				TuningRef.TuningRefType.class,

@@ -8,7 +8,7 @@
 		"zhenlige"
 	],
 	"contact": {
-		"homepage": "https://github.com/zhenlige/xennote",
+		"homepage": "https://modrinth.com/mod/xennote",
 		"sources": "https://github.com/zhenlige/xennote"
 	},
 	"license": "MIT License",
@@ -35,7 +35,7 @@
 	],
 	"depends": {
 		"fabricloader": "*",
-		"minecraft": ">=1.21.2",
+		"minecraft": ">=1.21.2-",
 		"java": ">=21",
 		"fabric-api": "*"
 	},

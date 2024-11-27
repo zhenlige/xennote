@@ -39,7 +39,6 @@ public class XennoteClient implements ClientModInitializer {
 			IntegerListEntry entryQ = entryBuilder.startIntField(Text.translatable("option.xennote.q"), payload.q()).setMin(1).build();
 			cat.addEntry(entryQ);
 			var entryRef = new EntryManager.SingleTuningRef(payload.tuningRef());
-			//DoubleListEntry entryEdo = entryBuilder.startDoubleField(Text.translatable("option.xennote.ede"), payload.edo()).setMin(0).build();
 			cat.addEntry(entryRef.createEntry(entryBuilder));
 			builder.setSavingRunnable(() -> {
 				Fraction f = Fraction.getFraction(entryP.getValue(), entryQ.getValue());
