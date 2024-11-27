@@ -1,11 +1,8 @@
 package com.github.zhenlige.xennote;
 
 import com.github.zhenlige.xennote.annotation.NeedWorldTunings;
-import com.github.zhenlige.xennote.payload.ClientInitPayload;
-import com.github.zhenlige.xennote.payload.UpdateTuningPayload;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
@@ -20,6 +17,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 
 public class WorldTunings extends PersistentState {
 	private static final Logger LOGGER = LoggerFactory.getLogger(WorldTunings.class);
@@ -113,19 +111,8 @@ public class WorldTunings extends PersistentState {
 	}
 
 	@Environment(EnvType.CLIENT)
-	public static void initializeClient() {
-		LOGGER.debug("start client initializing");
-		ClientPlayNetworking.registerGlobalReceiver(UpdateTuningPayload.ID, (payload, context) -> {
-			if (payload.tuning().isEmpty()) {
-				current.tunings.remove(payload.tuningId());
-			} else {
-				current.tunings.put(payload.tuningId(), payload.tuning().orElse(JI));
-			}
-		});
-		ClientPlayNetworking.registerGlobalReceiver(ClientInitPayload.ID, (payload, context) -> {
-			current = new WorldTunings(payload.tuningMap());
-			log();
-		});
+	public static void initializeClient(Function<Function<WorldTunings, WorldTunings>, Void> func) {
+		func.apply(newCurrent -> current = newCurrent);
 	}
 
 	@NeedWorldTunings
