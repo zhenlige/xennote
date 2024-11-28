@@ -30,6 +30,6 @@ jobs:
 
           github-token: ${{ secrets.GAYHUB_TOKEN }}
 
-          game-versions: [1.21.2, 1.21.3]
+          game-versions: '>=1.21.2-'
 
           version-type: beta
