@@ -31,4 +31,6 @@ jobs:
           github-token: ${{ secrets.GAYHUB_TOKEN }}
 
           version-type: beta
-          loaders: ["fabric", "quilt"]
+          loaders: |
+            fabric
+            quilt
