@@ -17,6 +17,7 @@ jobs:
         uses: actions/setup-java@v2
         with:
           java-version: 21
+          distribution: 'microsoft'
       - name: exe
         if: ${{ runner.os != 'Windows' }}
         run: chmod +x ./gradlew
