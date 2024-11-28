@@ -41,5 +41,10 @@
 	},
 	"suggests": {
 		"another-mod": "*"
+	},
+	"custom": {
+		"mc-publish": {
+			"loaders": ["fabric", "quilt"]
+		}
 	}
 }
