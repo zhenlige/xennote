@@ -29,6 +29,7 @@ jobs:
           modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
 
           github-token: ${{ secrets.GAYHUB_TOKEN }}
+          github-commitish: 1.21
 
           version-type: beta
           loaders: ["fabric", "quilt"]

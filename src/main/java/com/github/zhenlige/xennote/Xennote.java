@@ -3,7 +3,6 @@ package com.github.zhenlige.xennote;
 import com.github.zhenlige.xennote.payload.ClientInitPayload;
 import com.github.zhenlige.xennote.payload.UpdateTuningPayload;
 import com.github.zhenlige.xennote.payload.BlockTuningPayload;
-import com.google.common.collect.ImmutableSet;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import net.fabricmc.api.ModInitializer;
@@ -45,18 +44,11 @@ public class Xennote implements ModInitializer {
 	public static final String MOD_ID = "xennote";
 	public static final Logger GLOBAL_LOGGER = LoggerFactory.getLogger(MOD_ID + " global");
 	private static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
-	public static final XenNoteBlock NOTE_BLOCK = new XenNoteBlock(
-		Block.Settings.copy(Blocks.NOTE_BLOCK)
-			.registryKey(RegistryKey.of(RegistryKeys.BLOCK, Identifier.of(MOD_ID, "note_block")))
-	);
-	public static final BlockItem NOTE_BLOCK_ITEM = new BlockItem(NOTE_BLOCK,
-		new Item.Settings()
-			.useBlockPrefixedTranslationKey()
-			.registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(MOD_ID, "note_block")))
-	);
+	public static final XenNoteBlock NOTE_BLOCK = new XenNoteBlock(Block.Settings.copy(Blocks.NOTE_BLOCK));
+	public static final BlockItem NOTE_BLOCK_ITEM = new BlockItem(NOTE_BLOCK, new Item.Settings());
 	public static final BlockEntityType<XenNoteBlockEntity> NOTE_BLOCK_ENTITY = Registry.register(
 		Registries.BLOCK_ENTITY_TYPE, Identifier.of(MOD_ID, "note_block_entity"),
-		new BlockEntityType<>(XenNoteBlockEntity::new, ImmutableSet.of(NOTE_BLOCK))
+		BlockEntityType.Builder.create(XenNoteBlockEntity::new, NOTE_BLOCK).build()
 	);
 	public static final DynamicCommandExceptionType INVALID_TUNING_ID = new DynamicCommandExceptionType(
 		o -> Text.translatable("argument.tuning.invalid_id",  o)
