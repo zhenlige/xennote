@@ -55,7 +55,7 @@ public class XennoteClient implements ClientModInitializer {
 			var entryRef = new EntryManager.SingleTuningRef(payload.tuningRef());
 			cat.addEntry(entryRef.createEntry(entryBuilder));
 			builder.setSavingRunnable(() -> {
-				Fraction f = Fraction.getFraction(entryP.getValue(), entryQ.getValue());
+				Fraction f = Fraction.getReducedFraction(entryP.getValue(), entryQ.getValue());
 				int p = pOf(f), q = qOf(f);
 				ClientPlayNetworking.send(new BlockTuningPayload(payload.pos(), p, q, entryRef.getTuningRef()));
 			});
