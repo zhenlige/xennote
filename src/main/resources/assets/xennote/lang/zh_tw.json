@@ -13,6 +13,7 @@
 	"option.xennote.prime_map": "質數映射",
 	"option.xennote.prime": "質數",
 	"option.xennote.map_to": "映射到音程",
-	"argument.tuning.invalid": "無效調律參數：%s"
+	"argument.tuning.invalid": "無效調律參數：%s",
+	"argument.tuning.invalid_id": "無效調律ID：%s"
 
 }

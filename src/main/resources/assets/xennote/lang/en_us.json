@@ -13,5 +13,6 @@
 	"option.xennote.prime_map": "Prime mapping",
 	"option.xennote.prime": "Prime",
 	"option.xennote.map_to": "Mapped to interval",
-	"argument.tuning.invalid": "Invalid tuning argument: %s"
+	"argument.tuning.invalid": "Invalid tuning argument: %s",
+	"argument.tuning.invalid_id": "Invalid tuning ID: %s"
 }

@@ -5,6 +5,7 @@ import com.github.zhenlige.xennote.payload.UpdateTuningPayload;
 import com.github.zhenlige.xennote.payload.BlockTuningPayload;
 import com.google.common.collect.ImmutableSet;
 import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.ArgumentTypeRegistry;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -56,6 +57,9 @@ public class Xennote implements ModInitializer {
 	public static final BlockEntityType<XenNoteBlockEntity> NOTE_BLOCK_ENTITY = Registry.register(
 		Registries.BLOCK_ENTITY_TYPE, Identifier.of(MOD_ID, "note_block_entity"),
 		new BlockEntityType<>(XenNoteBlockEntity::new, ImmutableSet.of(NOTE_BLOCK))
+	);
+	public static final DynamicCommandExceptionType INVALID_TUNING_ID = new DynamicCommandExceptionType(
+		o -> Text.translatable("argument.tuning.invalid_id",  o)
 	);
 
 	@Override
@@ -159,11 +163,15 @@ public class Xennote implements ModInitializer {
 								MinecraftServer server = context.getSource().getServer();
 								WorldTunings tunings = WorldTunings.getServerState(server);
 								String id = StringArgumentType.getString(context, "id");
-								Tuning tuning = TuningArgumentType.getTuning(context, "tuning");
-								tunings.tunings.put(id, tuning);
-								for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList())
-									ServerPlayNetworking.send(player, new UpdateTuningPayload(id, Optional.of(tuning)));
-								return 1;
+								if (id.matches("[A-Za-z_]\\w*")) {
+									Tuning tuning = TuningArgumentType.getTuning(context, "tuning");
+									tunings.tunings.put(id, tuning);
+									for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList())
+										ServerPlayNetworking.send(player, new UpdateTuningPayload(id, Optional.of(tuning)));
+									return 1;
+								} else {
+									throw INVALID_TUNING_ID.create(id);
+								}
 							})
 						)
 					)
@@ -174,6 +182,8 @@ public class Xennote implements ModInitializer {
 							WorldTunings tunings = WorldTunings.getServerState(server);
 							String id = StringArgumentType.getString(context, "id");
 							tunings.tunings.remove(id);
+							if (WorldTunings.BUILT_IN_TUNINGS.containsKey(id))
+								tunings.tunings.put(id, WorldTunings.BUILT_IN_TUNINGS.get(id));
 							for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList())
 								ServerPlayNetworking.send(player, new UpdateTuningPayload(id, Optional.empty()));
 							return 1;
