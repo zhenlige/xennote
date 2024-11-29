@@ -35,11 +35,16 @@
 	],
 	"depends": {
 		"fabricloader": "*",
-		"minecraft": ">=1.21- <1.21.2-",
+		"minecraft": ">1.20.6 <1.21.2",
 		"java": ">=21",
 		"fabric-api": "*"
 	},
 	"suggests": {
 		"another-mod": "*"
+	},
+	"custom": {
+		"mc-publish": {
+			"loaders": ["fabric", "quilt"]
+		}
 	}
 }
